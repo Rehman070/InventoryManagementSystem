@@ -44,3 +44,6 @@ npm install
 ng serve
 
 ➡️ App runs at: http://localhost:4200
+
+![image](https://github.com/user-attachments/assets/a65d411f-5761-4592-a933-df6532aaaf6b)
+
