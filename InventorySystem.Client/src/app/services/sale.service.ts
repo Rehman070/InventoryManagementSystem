@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Sale } from '../models/sale.model';
 
@@ -7,7 +7,7 @@ import { Sale } from '../models/sale.model';
   providedIn: 'root'
 })
 export class SaleService {
-  private apiUrl = 'https://localhost:5001/api/sales';
+  private apiUrl = 'https://localhost:7246/api/sales';
 
   constructor(private http: HttpClient) { }
 
@@ -19,7 +19,11 @@ export class SaleService {
     return this.http.get<Sale>(`${this.apiUrl}/${id}`);
   }
 
-  createSale(sale: Sale): Observable<Sale> {
-    return this.http.post<Sale>(this.apiUrl, sale);
+  createSale(sale: any): Observable<Sale> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.post<Sale>(this.apiUrl, sale, { headers });
   }
 }

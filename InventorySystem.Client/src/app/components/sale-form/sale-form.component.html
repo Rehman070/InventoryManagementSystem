@@ -1,1 +1,36 @@
-<p>sale-form works!</p>
+<div class="modal-header">
+  <h5 class="modal-title">Sell {{product?.name}}</h5>
+  <button type="button" class="btn-close" (click)="onClose()" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+  <form [formGroup]="saleForm" (ngSubmit)="onSubmit()">
+    <div class="mb-3">
+      <label class="form-label">Product</label>
+      <input type="text" class="form-control" [value]="product?.name" disabled>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Available Quantity</label>
+      <input type="number" class="form-control" [value]="availableQuantity" disabled>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Quantity to Sell</label>
+      <input type="number" class="form-control" formControlName="quantitySold" required>
+      <div *ngIf="saleForm.get('quantitySold')?.errors?.['required']" class="text-danger">
+        Quantity is required
+      </div>
+      <div *ngIf="saleForm.get('quantitySold')?.errors?.['min']" class="text-danger">
+        Minimum quantity is 1
+      </div>
+      <div *ngIf="saleForm.get('quantitySold')?.errors?.['max']" class="text-danger">
+        Cannot sell more than available quantity ({{availableQuantity}})
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="onClose()">Close</button>
+      <button type="submit" class="btn btn-primary">Record Sale</button>
+    </div>
+  </form>
+</div>

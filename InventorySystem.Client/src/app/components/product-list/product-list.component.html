@@ -26,7 +26,8 @@
           <td>
             <button class="btn btn-sm btn-warning me-2" (click)="openEditModal(product)">Edit</button>
             <button class="btn btn-sm btn-danger me-2" (click)="product.id !== null && deleteProduct(product.id)">Delete</button>
-            <button class="btn btn-sm btn-success" (click)="openPurchaseModal(product)">Purchase</button>
+            <button class="btn btn-sm btn-success me-2" (click)="openPurchaseModal(product)">Purchase</button>
+            <button class="btn btn-sm btn-info" (click)="openSaleModal(product)">Sell</button>
           </td>
         </tr>
       </tbody>

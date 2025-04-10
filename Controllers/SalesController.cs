@@ -1,4 +1,5 @@
 ﻿using InventoryManagementSystem.DataContext;
+using InventoryManagementSystem.DTOs;
 using InventoryManagementSystem.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -40,22 +41,29 @@ namespace InventoryManagementSystem.Controllers
 
         // POST: api/Sales
         [HttpPost]
-        public async Task<ActionResult<Sale>> PostSale(Sale sale)
+        public async Task<ActionResult<Sale>> PostSale([FromBody] SaleCreateDto saleDto)
         {
-            var product = await _context.Products.FindAsync(sale.ProductId);
+            var product = await _context.Products.FindAsync(saleDto.ProductId);
             if (product == null)
             {
                 return BadRequest("Product not found");
             }
 
-            if (product.Quantity < sale.QuantitySold)
+            if (product.Quantity < saleDto.QuantitySold)
             {
                 return BadRequest("Not enough stock available");
             }
 
-            product.Quantity -= sale.QuantitySold;
-            sale.TotalPrice = sale.QuantitySold * product.Price;
-            sale.SaleDate = DateTime.UtcNow;
+            // Update product quantity
+            product.Quantity -= saleDto.QuantitySold;
+
+            var sale = new Sale
+            {
+                ProductId = saleDto.ProductId,
+                QuantitySold = saleDto.QuantitySold,
+                TotalPrice = saleDto.QuantitySold * product.Price,
+                SaleDate = DateTime.UtcNow
+            };
 
             _context.Sales.Add(sale);
             await _context.SaveChangesAsync();
