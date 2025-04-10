@@ -1,1 +1,59 @@
-<p>sales-list works!</p>
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Sales List</h2>
+    <button class="btn btn-primary" (click)="openSaleModal()">Record Sale</button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped table-hover">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Product</th>
+          <th>Quantity Sold</th>
+          <th>Total Price</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let sale of sales">
+          <td>{{ sale.id }}</td>
+          <td>{{ sale.product?.name }}</td>
+          <td>{{ sale.quantitySold }}</td>
+          <td>{{ sale.totalPrice | currency }}</td>
+          <td>{{ sale.saleDate | date }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Sale Modal -->
+<div class="modal fade" id="saleModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Record Sale</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="saleForm" (ngSubmit)="onSubmit()">
+          <div class="mb-3">
+            <label class="form-label">Product</label>
+            <select class="form-select" formControlName="productId" required>
+              <option *ngFor="let product of products" [value]="product.id">{{ product.name }} ({{ product.quantity }} available)</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Quantity</label>
+            <input type="number" class="form-control" formControlName="quantitySold" required>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Record Sale</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
