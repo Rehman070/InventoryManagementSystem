@@ -16,7 +16,7 @@ InventoryManagementSystem/ (Backend)
 
 ⚙️ Setup Steps
 1️⃣ Clone & Open Project
-git clone https://github.com/your-repo/InventoryManagementSystem.git
+git clone https://github.com/Rehman070/InventoryManagementSystem.git
 cd InventoryManagementSystem
 
 2️⃣ Backend Setup (.NET 8)
