@@ -1,1 +1,35 @@
-<p>purchase-form works!</p>
+<div class="modal-header">
+  <h5 class="modal-title">Purchase {{product?.name}}</h5>
+  <button type="button" class="btn-close" (click)="onClose()" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+  <form [formGroup]="purchaseForm" (ngSubmit)="onSubmit()">
+    <div class="mb-3">
+      <label class="form-label">Product</label>
+      <input type="text" class="form-control" [value]="product?.name" disabled>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Quantity</label>
+      <input type="number" class="form-control" formControlName="quantityPurchased" required>
+      <div *ngIf="purchaseForm.get('quantityPurchased')?.invalid && purchaseForm.get('quantityPurchased')?.touched"
+           class="text-danger">
+        Please enter a valid quantity (minimum 1)
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Supplier</label>
+      <input type="text" class="form-control" formControlName="supplier" required>
+      <div *ngIf="purchaseForm.get('supplier')?.invalid && purchaseForm.get('supplier')?.touched"
+           class="text-danger">
+        Supplier name is required
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="onClose()">Close</button>
+      <button type="submit" class="btn btn-primary">Record Purchase</button>
+    </div>
+  </form>
+</div>

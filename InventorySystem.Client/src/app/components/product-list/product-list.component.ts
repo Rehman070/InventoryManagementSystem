@@ -4,9 +4,12 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Product } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { CommonModule } from '@angular/common';
+import { ProductFormComponent } from '../product-form/product-form.component';
+import { PurchaseFormComponent } from '../purchase-form/purchase-form.component';
+import { PurchaseService } from '../../services/purchase.service';
 @Component({
   selector: 'app-product-list',
-  imports: [ReactiveFormsModule,CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, ProductFormComponent,PurchaseFormComponent],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss'
 })
@@ -19,6 +22,7 @@ export class ProductListComponent implements OnInit {
 
   constructor(
     private productService: ProductService,
+    private purchaseService: PurchaseService,
     private fb: FormBuilder,
     private modalService: NgbModal
   ) {
@@ -43,33 +47,75 @@ export class ProductListComponent implements OnInit {
   openAddModal(): void {
     this.isEditMode = false;
     this.productForm.reset();
-    this.modalService.open(document.getElementById('productModal'));
+    const modalRef = this.modalService.open(ProductFormComponent);
+    modalRef.componentInstance.productForm = this.productForm;
+    modalRef.componentInstance.isEditMode = this.isEditMode;
+
+    modalRef.componentInstance.formSubmit.subscribe(() => {
+      this.onSubmit();
+      modalRef.close();
+    });
+
+    modalRef.componentInstance.modalClose.subscribe(() => {
+      modalRef.close();
+    });
   }
 
   openEditModal(product: Product): void {
+    console.log('Editing product:', product);
+    console.log('Product ID:', product.id);
     this.isEditMode = true;
     this.currentProductId = product.id;
     this.productForm.patchValue({
+      id: product.id,
       name: product.name,
       description: product.description,
       price: product.price,
       quantity: product.quantity
     });
-    this.modalService.open(document.getElementById('productModal'));
+
+    const modalRef = this.modalService.open(ProductFormComponent);
+    modalRef.componentInstance.productForm = this.productForm;
+    modalRef.componentInstance.isEditMode = this.isEditMode;
+
+    modalRef.componentInstance.formSubmit.subscribe(() => {
+      this.onSubmit();
+      modalRef.close();
+    });
+
+    modalRef.componentInstance.modalClose.subscribe(() => {
+      modalRef.close();
+    });
   }
 
   onSubmit(): void {
     if (this.productForm.valid) {
       const productData = this.productForm.value;
+
+      // Ensure we have the ID for updates
       if (this.isEditMode && this.currentProductId) {
-        this.productService.updateProduct(this.currentProductId, productData).subscribe(() => {
-          this.loadProducts();
-          this.modalService.dismissAll();
+        productData.id = this.currentProductId;
+
+        this.productService.updateProduct(this.currentProductId, productData).subscribe({
+          next: () => {
+            this.loadProducts();
+            this.modalService.dismissAll();
+          },
+          error: (err) => {
+            console.error('Update failed:', err);
+            alert('Update failed. Please check console for details.');
+          }
         });
       } else {
-        this.productService.createProduct(productData).subscribe(() => {
-          this.loadProducts();
-          this.modalService.dismissAll();
+        this.productService.createProduct(productData).subscribe({
+          next: () => {
+            this.loadProducts();
+            this.modalService.dismissAll();
+          },
+          error: (err) => {
+            console.error('Create failed:', err);
+            alert('Create failed. Please check console for details.');
+          }
         });
       }
     }
@@ -81,5 +127,34 @@ export class ProductListComponent implements OnInit {
         this.loadProducts();
       });
     }
+  }
+
+  openPurchaseModal(product: Product): void {
+    const modalRef = this.modalService.open(PurchaseFormComponent);
+    modalRef.componentInstance.product = product;
+
+    modalRef.componentInstance.formSubmit.subscribe((purchaseData: any) => {
+      const purchasePayload = {
+        productId: product.id,
+        quantityPurchased: purchaseData.quantityPurchased,
+        supplier: purchaseData.supplier
+      };
+
+      this.purchaseService.createPurchase(purchasePayload).subscribe({
+        next: () => {
+          this.loadProducts();
+          modalRef.close();
+          alert('Product purchase successfully!');
+        },
+        error: (err) => {
+          console.error('Purchase failed:', err);
+          alert('Purchase recording failed');
+        }
+      });
+    });
+
+    modalRef.componentInstance.modalClose.subscribe(() => {
+      modalRef.close();
+    });
   }
 }

@@ -1,4 +1,5 @@
 ﻿using InventoryManagementSystem.DataContext;
+using InventoryManagementSystem.DTOs;
 using InventoryManagementSystem.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -38,21 +39,31 @@ namespace InventoryManagementSystem.Controllers
             return product;
         }
 
-        // PUT: api/Products/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(int id, Product product)
+        public async Task<IActionResult> PutProduct(int id, [FromBody] ProductUpdateDto productDto)
         {
-            if (id != product.Id)
+            if (id != productDto.Id)
             {
-                return BadRequest();
+                return BadRequest("ID mismatch");
             }
 
-            product.UpdatedAt = DateTime.UtcNow;
-            _context.Entry(product).State = EntityState.Modified;
+            var existingProduct = await _context.Products.FindAsync(id);
+            if (existingProduct == null)
+            {
+                return NotFound();
+            }
+
+            // Update only the allowed fields
+            existingProduct.Name = productDto.Name;
+            existingProduct.Description = productDto.Description;
+            existingProduct.Price = productDto.Price;
+            existingProduct.Quantity = productDto.Quantity;
+            existingProduct.UpdatedAt = DateTime.UtcNow;
 
             try
             {
                 await _context.SaveChangesAsync();
+                return NoContent();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -65,8 +76,6 @@ namespace InventoryManagementSystem.Controllers
                     throw;
                 }
             }
-
-            return NoContent();
         }
 
         // POST: api/Products

@@ -1,4 +1,5 @@
 ﻿using InventoryManagementSystem.DataContext;
+using InventoryManagementSystem.DTOs;
 using InventoryManagementSystem.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -40,17 +41,25 @@ namespace InventoryManagementSystem.Controllers
 
         // POST: api/Purchases
         [HttpPost]
-        public async Task<ActionResult<Purchase>> PostPurchase(Purchase purchase)
+        public async Task<ActionResult<Purchase>> PostPurchase([FromBody] PurchaseCreateDto purchaseDto)
         {
-            var product = await _context.Products.FindAsync(purchase.ProductId);
+            var product = await _context.Products.FindAsync(purchaseDto.ProductId);
             if (product == null)
             {
                 return BadRequest("Product not found");
             }
 
-            product.Quantity += purchase.QuantityPurchased;
-            purchase.TotalPrice = purchase.QuantityPurchased * product.Price;
-            purchase.PurchaseDate = DateTime.UtcNow;
+            // Update product quantity
+            product.Quantity += purchaseDto.QuantityPurchased;
+
+            var purchase = new Purchase
+            {
+                ProductId = purchaseDto.ProductId,
+                QuantityPurchased = purchaseDto.QuantityPurchased,
+                TotalPrice = purchaseDto.QuantityPurchased * product.Price,
+                PurchaseDate = DateTime.UtcNow,
+                Supplier = purchaseDto.Supplier
+            };
 
             _context.Purchases.Add(purchase);
             await _context.SaveChangesAsync();
