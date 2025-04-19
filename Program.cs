@@ -1,5 +1,6 @@
 using InventoryManagementSystem.DataContext;
 using InventoryManagementSystem.SeedData;
+using InventoryManagementSystem.Services.ProductService;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IProductService, ProductService>();  
 
 var app = builder.Build();
 
