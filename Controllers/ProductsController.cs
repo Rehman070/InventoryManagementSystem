@@ -21,7 +21,7 @@ namespace InventoryManagementSystem.Controllers
             _productService = productService;
         }
 
-        // GET: api/Products
+        #region Product Apis
         [HttpGet("GetProducts")]
         public async Task<IActionResult> GetProducts()
         {
@@ -35,11 +35,10 @@ namespace InventoryManagementSystem.Controllers
             return Ok(products);
         }
 
-        // GET: api/Products/5
-        [HttpGet("GetProductById")]
-        public async Task<IActionResult> GetProductById(int id)
+        [HttpGet("GetProduct")]
+        public async Task<IActionResult> GetProduct(int id)
         {
-            var product = await _productService.GetProductById(id);
+            var product = await _productService.GetProduct(id);
 
             if (product == null)
             {
@@ -66,7 +65,6 @@ namespace InventoryManagementSystem.Controllers
             return Ok(product);
         }
 
-        // POST: api/Products/AddProduct
         [HttpPost("AddProduct")]
         public async Task<IActionResult> AddProduct([FromBody] Product product)
         {
@@ -84,8 +82,7 @@ namespace InventoryManagementSystem.Controllers
             return Ok(newProduct);
         }
 
-        // DELETE: api/Products/DeleteProduct/{id}
-        [HttpDelete("DeleteProduct/{id}")]
+        [HttpDelete("DeleteProduct")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             var isDeleted = await _productService.DeleteProduct(id);
@@ -97,10 +94,6 @@ namespace InventoryManagementSystem.Controllers
 
             return NoContent();
         }
-
-        private bool ProductExists(int id)
-        {
-            return _context.Products.Any(e => e.Id == id);
-        }
+        #endregion
     }
 }

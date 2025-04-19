@@ -20,7 +20,7 @@ namespace InventoryManagementSystem.Services.ProductService
             return products.Any() ? products : null;
         }
 
-        public async Task<Product?> GetProductById(int id)
+        public async Task<Product?> GetProduct(int id)
         {
             return await _context.Products.FindAsync(id);
         }

@@ -1,6 +1,7 @@
 ﻿using InventoryManagementSystem.DataContext;
 using InventoryManagementSystem.DTOs;
 using InventoryManagementSystem.Entities;
+using InventoryManagementSystem.Services.PurchaseService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,59 +13,56 @@ namespace InventoryManagementSystem.Controllers
     public class PurchasesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IPurchaseService _purchaseService;
 
-        public PurchasesController(ApplicationDbContext context)
+        public PurchasesController(ApplicationDbContext context, IPurchaseService purchaseService)
         {
             _context = context;
+            _purchaseService = purchaseService;
         }
 
-        // GET: api/Purchases
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Purchase>>> GetPurchases()
+        [HttpGet("GetPurchases")]
+        public async Task<IActionResult> GetPurchases()
         {
-            return await _context.Purchases.Include(p => p.Product).ToListAsync();
+            var purchases = await _purchaseService.GetPurchases();
+
+            if (purchases == null || !purchases.Any())
+            {
+                return NotFound("No purchases found.");
+            }
+
+            return Ok(purchases);
         }
 
-        // GET: api/Purchases/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Purchase>> GetPurchase(int id)
+        [HttpGet("GetPurchase")]
+        public async Task<IActionResult> GetPurchase(int id)
         {
-            var purchase = await _context.Purchases.Include(p => p.Product).FirstOrDefaultAsync(p => p.Id == id);
+            var purchase = await _purchaseService.GetPurchase(id);
 
             if (purchase == null)
             {
-                return NotFound();
+                return NotFound($"Purchase with ID {id} not found.");
             }
 
-            return purchase;
+            return Ok(purchase);
         }
 
-        // POST: api/Purchases
-        [HttpPost]
-        public async Task<ActionResult<Purchase>> PostPurchase([FromBody] PurchaseCreateDto purchaseDto)
+        [HttpPost("AddPurchase")]
+        public async Task<IActionResult> AddPurchase([FromBody] PurchaseCreateDto purchaseDto)
         {
-            var product = await _context.Products.FindAsync(purchaseDto.ProductId);
-            if (product == null)
+            if (purchaseDto == null)
             {
-                return BadRequest("Product not found");
+                return BadRequest("Invalid purchase data.");
             }
 
-            // Update product quantity
-            product.Quantity += purchaseDto.QuantityPurchased;
+            var purchase = await _purchaseService.AddPurchase(purchaseDto);
 
-            var purchase = new Purchase
+            if (purchase == null)
             {
-                ProductId = purchaseDto.ProductId,
-                QuantityPurchased = purchaseDto.QuantityPurchased,
-                TotalPrice = purchaseDto.QuantityPurchased * product.Price,
-                PurchaseDate = DateTime.UtcNow,
-                Supplier = purchaseDto.Supplier
-            };
+                return StatusCode(500, "Failed to add purchase.");
+            }
 
-            _context.Purchases.Add(purchase);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetPurchase", new { id = purchase.Id }, purchase);
+            return Ok(purchase);
         }
     }
 }
