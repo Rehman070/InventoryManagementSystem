@@ -2,5 +2,7 @@
 {
     public interface IExcelSheetService
     {
+        Task<byte[]> ExportProductsToExcel();
+
     }
 }
