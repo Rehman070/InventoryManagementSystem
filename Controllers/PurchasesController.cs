@@ -12,15 +12,14 @@ namespace InventoryManagementSystem.Controllers
     [ApiController]
     public class PurchasesController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
         private readonly IPurchaseService _purchaseService;
 
-        public PurchasesController(ApplicationDbContext context, IPurchaseService purchaseService)
+        public PurchasesController(IPurchaseService purchaseService)
         {
-            _context = context;
             _purchaseService = purchaseService;
         }
 
+        #region Purchase Apis
         [HttpGet("GetPurchases")]
         public async Task<IActionResult> GetPurchases()
         {
@@ -64,5 +63,6 @@ namespace InventoryManagementSystem.Controllers
 
             return Ok(purchase);
         }
+        #endregion
     }
 }

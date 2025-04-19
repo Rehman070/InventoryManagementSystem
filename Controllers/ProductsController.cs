@@ -12,12 +12,10 @@ namespace InventoryManagementSystem.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
         private readonly IProductService _productService;
 
-        public ProductsController(ApplicationDbContext context, IProductService productService)
+        public ProductsController(IProductService productService)
         {
-            _context = context;
             _productService = productService;
         }
 
