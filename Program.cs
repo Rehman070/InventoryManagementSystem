@@ -1,7 +1,10 @@
 using InventoryManagementSystem.DataContext;
 using InventoryManagementSystem.SeedData;
+using InventoryManagementSystem.Services.ExcelSheetService;
+using InventoryManagementSystem.Services.PdfService;
 using InventoryManagementSystem.Services.ProductService;
 using InventoryManagementSystem.Services.PurchaseService;
+using InventoryManagementSystem.Services.SaleService;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +28,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IProductService, ProductService>();  
 builder.Services.AddScoped<IPurchaseService, PurchaseService>();
+builder.Services.AddScoped<ISaleService, SaleService>();
+builder.Services.AddScoped<IPdfService, PdfService>();
+builder.Services.AddScoped<IExcelSheetService, ExcelSheetService>();
 
 var app = builder.Build();
 
