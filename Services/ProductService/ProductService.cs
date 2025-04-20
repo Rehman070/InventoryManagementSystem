@@ -1,4 +1,5 @@
-﻿using InventoryManagementSystem.DataContext;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using InventoryManagementSystem.DataContext;
 using InventoryManagementSystem.DTOs;
 using InventoryManagementSystem.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -14,9 +15,22 @@ namespace InventoryManagementSystem.Services.ProductService
             _context = context;
         }
 
-        public async Task<IEnumerable<Product>> GetProducts()
+        public async Task<GetProductsDto<Product>> GetProducts(int pageNumber = 1, int pageSize = 10)
         {
-            return await _context.Products.ToListAsync();
+            var products = await _context.Products
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var totalProducts = await _context.Products.CountAsync();
+
+            return new GetProductsDto<Product>
+            {
+                Data = products,
+                TotalRecords = totalProducts,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
 
         public async Task<Product?> GetProduct(int id)

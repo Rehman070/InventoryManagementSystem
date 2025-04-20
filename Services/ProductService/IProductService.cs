@@ -6,7 +6,7 @@ namespace InventoryManagementSystem.Services.ProductService
 {
     public interface IProductService
     {
-        public Task<IEnumerable<Product>> GetProducts();
+        public Task<GetProductsDto<Product>> GetProducts(int pageNumber = 1, int pageSize = 10);
         public Task<Product?> GetProduct(int id);
         public Task<Product?> UpdateProduct(int id, ProductUpdateDto productDto);
         public Task<Product?> AddProduct(Product product);

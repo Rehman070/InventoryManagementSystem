@@ -20,6 +20,9 @@ import { AlertService } from '../../services/alert.service';
 export class ProductListComponent implements OnInit {
 
   products: Product[] = [];
+  totalRecords: number = 0;
+  pageNumber: number = 1;
+  pageSize: number = 10;
   productForm: FormGroup;
   isEditMode = false;
   currentProductId: number | null = null;
@@ -46,11 +49,22 @@ export class ProductListComponent implements OnInit {
   }
 
   loadProducts(): void {
-    this.productService.getProducts().subscribe(products => {
-      this.products = products;
+    this.productService.getProducts(this.pageNumber, this.pageSize).subscribe(response => {
+      this.products = response.data;
+      this.totalRecords = response.totalRecords;
     });
+    console.log(this.products);
+    console.log(this.totalRecords);
+    console.log(this.pageNumber);
   }
 
+  changePage(newPage: number): void {
+    this.pageNumber = newPage;
+    this.loadProducts();
+  }
+  getTotalPages(): number[] {
+    return Array.from({ length: Math.ceil(this.totalRecords / this.pageSize) }, (_, i) => i + 1);
+  }
   openAddModal(): void {
     this.isEditMode = false;
     this.productForm.reset();

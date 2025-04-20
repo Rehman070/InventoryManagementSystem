@@ -1,4 +1,5 @@
-﻿using InventoryManagementSystem.DataContext;
+﻿using DocumentFormat.OpenXml.InkML;
+using InventoryManagementSystem.DataContext;
 using InventoryManagementSystem.DTOs;
 using InventoryManagementSystem.Entities;
 using InventoryManagementSystem.Services.ProductService;
@@ -21,16 +22,16 @@ namespace InventoryManagementSystem.Controllers
 
         #region Product Apis
         [HttpGet("GetProducts")]
-        public async Task<IActionResult> GetProducts()
+        public async Task<IActionResult> GetProducts([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var products = await _productService.GetProducts();
+            var result = await _productService.GetProducts(pageNumber, pageSize);
 
-            if (products == null)
+            if (result.Data == null || !result.Data.Any())
             {
                 return NotFound("No products found.");
             }
 
-            return Ok(products);
+            return Ok(result);
         }
 
         [HttpGet("GetProduct")]

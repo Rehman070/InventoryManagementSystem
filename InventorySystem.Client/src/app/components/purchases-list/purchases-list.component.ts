@@ -16,6 +16,9 @@ import { CommonModule } from '@angular/common';
 export class PurchasesListComponent implements OnInit {
   purchases: Purchase[] = [];
   products: Product[] = [];
+  totalRecords: number = 0;
+  pageNumber: number = 1;
+  pageSize: number = 10;
   purchaseForm: FormGroup;
 
   constructor(
@@ -43,8 +46,9 @@ export class PurchasesListComponent implements OnInit {
   }
 
   loadProducts(): void {
-    this.productService.getProducts().subscribe(products => {
-      this.products = products;
+    this.productService.getProducts(this.pageNumber, this.pageSize).subscribe(response => {
+      this.products = response.data;
+      this.totalRecords = response.totalRecords;
     });
   }
 
