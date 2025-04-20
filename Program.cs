@@ -1,7 +1,6 @@
 using InventoryManagementSystem.DataContext;
 using InventoryManagementSystem.SeedData;
 using InventoryManagementSystem.Services.ExcelSheetService;
-using InventoryManagementSystem.Services.PdfService;
 using InventoryManagementSystem.Services.ProductService;
 using InventoryManagementSystem.Services.PurchaseService;
 using InventoryManagementSystem.Services.SaleService;
