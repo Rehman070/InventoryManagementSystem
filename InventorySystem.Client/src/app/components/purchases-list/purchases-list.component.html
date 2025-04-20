@@ -16,16 +16,24 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let purchase of purchases">
-          <td>{{ purchase.id }}</td>
-          <td>{{ purchase.product?.name }}</td>
-          <td>{{ purchase.quantityPurchased }}</td>
-          <td>{{ purchase.totalPrice | currency }}</td>
-          <td>{{ purchase.supplier }}</td>
-          <td>{{ purchase.purchaseDate | date }}</td>
-        </tr>
+        <ng-container *ngIf="purchases && purchases.length > 0; else noData">
+          <tr *ngFor="let purchase of purchases">
+            <td>{{ purchase.id }}</td>
+            <td>{{ purchase.product?.name }}</td>
+            <td>{{ purchase.quantityPurchased }}</td>
+            <td>{{ purchase.totalPrice | currency }}</td>
+            <td>{{ purchase.supplier }}</td>
+            <td>{{ purchase.purchaseDate | date }}</td>
+          </tr>
+        </ng-container>
+
+        <!-- Show message inside the table when no purchases exist -->
+        <ng-template #noData>
+          <tr>
+            <td colspan="6" class="text-center text-muted">No purchases found. Please add new purchases.</td>
+          </tr>
+        </ng-template>
       </tbody>
     </table>
   </div>
 </div>
-

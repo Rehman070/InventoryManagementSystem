@@ -9,9 +9,10 @@ import { PurchaseFormComponent } from '../purchase-form/purchase-form.component'
 import { PurchaseService } from '../../services/purchase.service';
 import { SaleService } from '../../services/sale.service';
 import { SaleFormComponent } from '../sale-form/sale-form.component';
+import { ExcelService } from '../../services/excel.service';
 @Component({
   selector: 'app-product-list',
-  imports: [ReactiveFormsModule, CommonModule, ProductFormComponent,PurchaseFormComponent,SaleFormComponent],
+  imports: [ReactiveFormsModule, CommonModule, ProductFormComponent, PurchaseFormComponent, SaleFormComponent],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss'
 })
@@ -25,6 +26,7 @@ export class ProductListComponent implements OnInit {
   constructor(
     private productService: ProductService,
     private purchaseService: PurchaseService,
+    private excelService: ExcelService,
     private saleService: SaleService,
     private fb: FormBuilder,
     private modalService: NgbModal
@@ -161,32 +163,49 @@ export class ProductListComponent implements OnInit {
     });
   }
   // Add to your ProductListComponent
-openSaleModal(product: Product): void {
-  const modalRef = this.modalService.open(SaleFormComponent);
-  modalRef.componentInstance.product = product;
-  modalRef.componentInstance.availableQuantity = product.quantity;
+  openSaleModal(product: Product): void {
+    const modalRef = this.modalService.open(SaleFormComponent);
+    modalRef.componentInstance.product = product;
+    modalRef.componentInstance.availableQuantity = product.quantity;
 
-  modalRef.componentInstance.formSubmit.subscribe((saleData: any) => {
-    const salePayload = {
-      productId: product.id,
-      quantitySold: saleData.quantitySold
-    };
+    modalRef.componentInstance.formSubmit.subscribe((saleData: any) => {
+      const salePayload = {
+        productId: product.id,
+        quantitySold: saleData.quantitySold
+      };
 
-    this.saleService.createSale(salePayload).subscribe({
-      next: () => {
-        this.loadProducts(); // Refresh product quantities
-        modalRef.close();
-        alert('Product sold successfully!');
+      this.saleService.createSale(salePayload).subscribe({
+        next: () => {
+          this.loadProducts(); // Refresh product quantities
+          modalRef.close();
+          alert('Product sold successfully!');
+        },
+        error: (err) => {
+          console.error('Sale failed:', err);
+          alert('Sale recording failed');
+        }
+      });
+    });
+
+    modalRef.componentInstance.modalClose.subscribe(() => {
+      modalRef.close();
+    });
+  }
+
+  exportProducts(): void {
+    this.excelService.exportProducts().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Products.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
       },
       error: (err) => {
-        console.error('Sale failed:', err);
-        alert('Sale recording failed');
+        console.error('Export failed:', err);
       }
     });
-  });
+  }
 
-  modalRef.componentInstance.modalClose.subscribe(() => {
-    modalRef.close();
-  });
-}
 }
