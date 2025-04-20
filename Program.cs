@@ -1,4 +1,5 @@
 using InventoryManagementSystem.DataContext;
+using InventoryManagementSystem.MiddleWares;
 using InventoryManagementSystem.SeedData;
 using InventoryManagementSystem.Services.ExcelSheetService;
 using InventoryManagementSystem.Services.ProductService;
@@ -47,6 +48,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 app.UseCors("AllowClient");

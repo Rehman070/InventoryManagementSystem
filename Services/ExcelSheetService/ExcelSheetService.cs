@@ -22,11 +22,17 @@ namespace InventoryManagementSystem.Services.ExcelSheetService
             {
                 var worksheet = workbook.Worksheets.Add("Products");
 
-                // Add headers
-                worksheet.Cell(1, 1).Value = "ID";
-                worksheet.Cell(1, 2).Value = "Name";
-                worksheet.Cell(1, 3).Value = "Price";
-                worksheet.Cell(1, 4).Value = "Quantity";
+                var headers = new List<string> { "ID", "Name", "Description", "Price", "Quantity", "CreatedAt", "UpdatedAt" };
+
+                for (int i = 0; i < headers.Count; i++)
+                {
+                    worksheet.Cell(1, i + 1).Value = headers[i];
+                }
+
+                var headerRange = worksheet.Range(1, 1, 1, headers.Count);
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
                 // Add product data
                 int row = 2;
@@ -34,8 +40,11 @@ namespace InventoryManagementSystem.Services.ExcelSheetService
                 {
                     worksheet.Cell(row, 1).Value = product.Id;
                     worksheet.Cell(row, 2).Value = product.Name;
-                    worksheet.Cell(row, 3).Value = product.Price;
-                    worksheet.Cell(row, 4).Value = product.Quantity;
+                    worksheet.Cell(row, 3).Value = product.Description;
+                    worksheet.Cell(row, 4).Value = product.Price;
+                    worksheet.Cell(row, 5).Value = product.Quantity;
+                    worksheet.Cell(row, 6).Value = product.CreatedAt.ToString("yyyy-MM-dd");
+                    worksheet.Cell(row, 7).Value = product.UpdatedAt.ToString("yyyy-MM-dd");
                     row++;
                 }
 
