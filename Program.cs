@@ -29,7 +29,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IProductService, ProductService>();  
 builder.Services.AddScoped<IPurchaseService, PurchaseService>();
 builder.Services.AddScoped<ISaleService, SaleService>();
-builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<IExcelSheetService, ExcelSheetService>();
 
 var app = builder.Build();

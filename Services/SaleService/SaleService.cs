@@ -18,7 +18,7 @@ namespace InventoryManagementSystem.Services.SaleService
         public async Task<IEnumerable<Sale>> GetSales()
         {
             var sales = await _context.Sales.Include(s => s.Product).ToListAsync();
-            return sales.Any() ? sales : null;
+            return sales;
         }
 
         public async Task<Sale?> GetSale(int id)
@@ -28,6 +28,8 @@ namespace InventoryManagementSystem.Services.SaleService
 
         public async Task<Sale?> AddSale(SaleCreateDto saleDto)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
             var product = await _context.Products.FindAsync(saleDto.ProductId);
 
             if (product == null || product.Quantity < saleDto.QuantitySold)
@@ -35,7 +37,7 @@ namespace InventoryManagementSystem.Services.SaleService
                 return null;
             }
 
-            // Update product quantity
+            // Reduce product stock
             product.Quantity -= saleDto.QuantitySold;
 
             var sale = new Sale
@@ -48,6 +50,8 @@ namespace InventoryManagementSystem.Services.SaleService
 
             _context.Sales.Add(sale);
             await _context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
 
             return sale;
         }

@@ -16,8 +16,7 @@ namespace InventoryManagementSystem.Services.ProductService
 
         public async Task<IEnumerable<Product>> GetProducts()
         {
-            var products = await _context.Products.ToListAsync();
-            return products.Any() ? products : null;
+            return await _context.Products.ToListAsync();
         }
 
         public async Task<Product?> GetProduct(int id)
