@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Purchase } from '../models/purchase.model';
 
@@ -7,23 +7,20 @@ import { Purchase } from '../models/purchase.model';
   providedIn: 'root'
 })
 export class PurchaseService {
-  private apiUrl = 'https://localhost:7246/api/purchases';
+  private apiUrl = 'https://localhost:7246/api/Purchases';
 
   constructor(private http: HttpClient) { }
 
   getPurchases(): Observable<Purchase[]> {
-    return this.http.get<Purchase[]>(this.apiUrl);
+    return this.http.get<Purchase[]>(`${this.apiUrl}/GetPurchases`);
   }
 
   getPurchase(id: number): Observable<Purchase> {
-    return this.http.get<Purchase>(`${this.apiUrl}/${id}`);
+    const params = new HttpParams().set('id', id.toString());
+    return this.http.get<Purchase>(`${this.apiUrl}/GetPurchase`, { params });
   }
 
   createPurchase(purchase: any): Observable<Purchase> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
-
-    return this.http.post<Purchase>(this.apiUrl, purchase, { headers });
+    return this.http.post<Purchase>(`${this.apiUrl}/AddPurchase`, purchase);
   }
 }
