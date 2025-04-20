@@ -10,6 +10,7 @@ import { PurchaseService } from '../../services/purchase.service';
 import { SaleService } from '../../services/sale.service';
 import { SaleFormComponent } from '../sale-form/sale-form.component';
 import { ExcelService } from '../../services/excel.service';
+import { AlertService } from '../../services/alert.service';
 @Component({
   selector: 'app-product-list',
   imports: [ReactiveFormsModule, CommonModule, ProductFormComponent, PurchaseFormComponent, SaleFormComponent],
@@ -28,6 +29,7 @@ export class ProductListComponent implements OnInit {
     private purchaseService: PurchaseService,
     private excelService: ExcelService,
     private saleService: SaleService,
+    private alertService: AlertService,
     private fb: FormBuilder,
     private modalService: NgbModal
   ) {
@@ -67,8 +69,6 @@ export class ProductListComponent implements OnInit {
   }
 
   openEditModal(product: Product): void {
-    console.log('Editing product:', product);
-    console.log('Product ID:', product.id);
     this.isEditMode = true;
     this.currentProductId = product.id;
     this.productForm.patchValue({
@@ -108,7 +108,7 @@ export class ProductListComponent implements OnInit {
           },
           error: (err) => {
             console.error('Update failed:', err);
-            alert('Update failed. Please check console for details.');
+            this.alertService.successSwal('Product updated');
           }
         });
       } else {
@@ -116,20 +116,29 @@ export class ProductListComponent implements OnInit {
           next: () => {
             this.loadProducts();
             this.modalService.dismissAll();
+            this.alertService.successSwal('Product created');
           },
           error: (err) => {
             console.error('Create failed:', err);
-            alert('Create failed. Please check console for details.');
+            this.alertService.errorSwal('Product creation');
+
           }
         });
       }
     }
   }
 
-  deleteProduct(id: number): void {
-    if (confirm('Are you sure you want to delete this product?')) {
+  async deleteProduct(id: number): Promise<void> {
+    const confirmed = await this.alertService.confirmationSwal(
+      'Delete Product',
+      'Are you sure you want to delete this product?',
+      'Yes, delete it'
+    );
+
+    if (confirmed) {
       this.productService.deleteProduct(id).subscribe(() => {
         this.loadProducts();
+        this.alertService.successSwal('Product has been deleted');
       });
     }
   }
@@ -149,11 +158,10 @@ export class ProductListComponent implements OnInit {
         next: () => {
           this.loadProducts();
           modalRef.close();
-          alert('Product purchase successfully!');
+          this.alertService.successSwal('Product purchase');
         },
         error: (err) => {
-          console.error('Purchase failed:', err);
-          alert('Purchase recording failed');
+          this.alertService.errorSwal('Purchase');
         }
       });
     });
@@ -176,13 +184,12 @@ export class ProductListComponent implements OnInit {
 
       this.saleService.createSale(salePayload).subscribe({
         next: () => {
-          this.loadProducts(); // Refresh product quantities
+          this.loadProducts();
           modalRef.close();
-          alert('Product sold successfully!');
+          this.alertService.successSwal('Product sold');
         },
         error: (err) => {
-          console.error('Sale failed:', err);
-          alert('Sale recording failed');
+          this.alertService.errorSwal('Sale recording');
         }
       });
     });
