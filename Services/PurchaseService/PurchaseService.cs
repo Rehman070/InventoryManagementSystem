@@ -21,7 +21,7 @@ namespace InventoryManagementSystem.Services.PurchaseService
                 .AsNoTracking()
                 .Include(p => p.Product)
                 .ToListAsync();
-            return purchases.Any() ? purchases : null;
+            return purchases;
         }
 
         public async Task<Purchase?> GetPurchase(int id)
