@@ -1,6 +1,7 @@
 ﻿using InventoryManagementSystem.DataContext;
 using InventoryManagementSystem.DTOs;
 using InventoryManagementSystem.Entities;
+using InventoryManagementSystem.Services.SaleService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,64 +12,57 @@ namespace InventoryManagementSystem.Controllers
     [ApiController]
     public class SalesController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ISaleService _saleService;
 
-        public SalesController(ApplicationDbContext context)
+        public SalesController(ISaleService saleService)
         {
-            _context = context;
+            _saleService = saleService;
         }
 
-        // GET: api/Sales
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Sale>>> GetSales()
-        {
-            return await _context.Sales.ToListAsync();
-        }
+        #region Sale Apis
+        [HttpGet("GetSales")]
+            public async Task<IActionResult> GetSales()
+            {
+                var sales = await _saleService.GetSales();
 
-        // GET: api/Sales/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Sale>> GetSale(int id)
+                if (sales == null || !sales.Any())
+                {
+                    return NotFound("No sales found.");
+                }
+
+                return Ok(sales);
+            }
+
+        [HttpGet("GetSale")]
+        public async Task<IActionResult> GetSale(int id)
         {
-            var sale = await _context.Sales.Include(s => s.Product).FirstOrDefaultAsync(s => s.Id == id);
+            var sale = await _saleService.GetSale(id);
 
             if (sale == null)
             {
-                return NotFound();
+                return NotFound($"Sale with ID {id} not found.");
             }
 
-            return sale;
+            return Ok(sale);
         }
 
-        // POST: api/Sales
-        [HttpPost]
-        public async Task<ActionResult<Sale>> PostSale([FromBody] SaleCreateDto saleDto)
+        [HttpPost("AddSale")]
+        public async Task<IActionResult> AddSale([FromBody] SaleCreateDto saleDto)
         {
-            var product = await _context.Products.FindAsync(saleDto.ProductId);
-            if (product == null)
+            if (saleDto == null)
             {
-                return BadRequest("Product not found");
+                return BadRequest("Invalid sale data.");
             }
 
-            if (product.Quantity < saleDto.QuantitySold)
+            var sale = await _saleService.AddSale(saleDto);
+
+            if (sale == null)
             {
-                return BadRequest("Not enough stock available");
+                return BadRequest("Sale could not be completed. Check product stock.");
             }
 
-            // Update product quantity
-            product.Quantity -= saleDto.QuantitySold;
-
-            var sale = new Sale
-            {
-                ProductId = saleDto.ProductId,
-                QuantitySold = saleDto.QuantitySold,
-                TotalPrice = saleDto.QuantitySold * product.Price,
-                SaleDate = DateTime.UtcNow
-            };
-
-            _context.Sales.Add(sale);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetSale", new { id = sale.Id }, sale);
+        return Ok(sale);
         }
+        #endregion
     }
 }

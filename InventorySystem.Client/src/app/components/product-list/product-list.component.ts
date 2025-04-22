@@ -9,15 +9,20 @@ import { PurchaseFormComponent } from '../purchase-form/purchase-form.component'
 import { PurchaseService } from '../../services/purchase.service';
 import { SaleService } from '../../services/sale.service';
 import { SaleFormComponent } from '../sale-form/sale-form.component';
+import { ExcelService } from '../../services/excel.service';
+import { AlertService } from '../../services/alert.service';
 @Component({
   selector: 'app-product-list',
-  imports: [ReactiveFormsModule, CommonModule, ProductFormComponent,PurchaseFormComponent,SaleFormComponent],
+  imports: [ReactiveFormsModule, CommonModule, ProductFormComponent, PurchaseFormComponent, SaleFormComponent],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss'
 })
 export class ProductListComponent implements OnInit {
 
   products: Product[] = [];
+  totalRecords: number = 0;
+  pageNumber: number = 1;
+  pageSize: number = 10;
   productForm: FormGroup;
   isEditMode = false;
   currentProductId: number | null = null;
@@ -25,7 +30,9 @@ export class ProductListComponent implements OnInit {
   constructor(
     private productService: ProductService,
     private purchaseService: PurchaseService,
+    private excelService: ExcelService,
     private saleService: SaleService,
+    private alertService: AlertService,
     private fb: FormBuilder,
     private modalService: NgbModal
   ) {
@@ -42,11 +49,22 @@ export class ProductListComponent implements OnInit {
   }
 
   loadProducts(): void {
-    this.productService.getProducts().subscribe(products => {
-      this.products = products;
+    this.productService.getProducts(this.pageNumber, this.pageSize).subscribe(response => {
+      this.products = response.data;
+      this.totalRecords = response.totalRecords;
     });
+    console.log(this.products);
+    console.log(this.totalRecords);
+    console.log(this.pageNumber);
   }
 
+  changePage(newPage: number): void {
+    this.pageNumber = newPage;
+    this.loadProducts();
+  }
+  getTotalPages(): number[] {
+    return Array.from({ length: Math.ceil(this.totalRecords / this.pageSize) }, (_, i) => i + 1);
+  }
   openAddModal(): void {
     this.isEditMode = false;
     this.productForm.reset();
@@ -65,8 +83,6 @@ export class ProductListComponent implements OnInit {
   }
 
   openEditModal(product: Product): void {
-    console.log('Editing product:', product);
-    console.log('Product ID:', product.id);
     this.isEditMode = true;
     this.currentProductId = product.id;
     this.productForm.patchValue({
@@ -106,7 +122,7 @@ export class ProductListComponent implements OnInit {
           },
           error: (err) => {
             console.error('Update failed:', err);
-            alert('Update failed. Please check console for details.');
+            this.alertService.successSwal('Product updated');
           }
         });
       } else {
@@ -114,20 +130,29 @@ export class ProductListComponent implements OnInit {
           next: () => {
             this.loadProducts();
             this.modalService.dismissAll();
+            this.alertService.successSwal('Product created');
           },
           error: (err) => {
             console.error('Create failed:', err);
-            alert('Create failed. Please check console for details.');
+            this.alertService.errorSwal('Product creation');
+
           }
         });
       }
     }
   }
 
-  deleteProduct(id: number): void {
-    if (confirm('Are you sure you want to delete this product?')) {
+  async deleteProduct(id: number): Promise<void> {
+    const confirmed = await this.alertService.confirmationSwal(
+      'Delete Product',
+      'Are you sure you want to delete this product?',
+      'Yes, delete it'
+    );
+
+    if (confirmed) {
       this.productService.deleteProduct(id).subscribe(() => {
         this.loadProducts();
+        this.alertService.successSwal('Product has been deleted');
       });
     }
   }
@@ -147,11 +172,10 @@ export class ProductListComponent implements OnInit {
         next: () => {
           this.loadProducts();
           modalRef.close();
-          alert('Product purchase successfully!');
+          this.alertService.successSwal('Product purchase');
         },
         error: (err) => {
-          console.error('Purchase failed:', err);
-          alert('Purchase recording failed');
+          this.alertService.errorSwal('Purchase');
         }
       });
     });
@@ -161,32 +185,48 @@ export class ProductListComponent implements OnInit {
     });
   }
   // Add to your ProductListComponent
-openSaleModal(product: Product): void {
-  const modalRef = this.modalService.open(SaleFormComponent);
-  modalRef.componentInstance.product = product;
-  modalRef.componentInstance.availableQuantity = product.quantity;
+  openSaleModal(product: Product): void {
+    const modalRef = this.modalService.open(SaleFormComponent);
+    modalRef.componentInstance.product = product;
+    modalRef.componentInstance.availableQuantity = product.quantity;
 
-  modalRef.componentInstance.formSubmit.subscribe((saleData: any) => {
-    const salePayload = {
-      productId: product.id,
-      quantitySold: saleData.quantitySold
-    };
+    modalRef.componentInstance.formSubmit.subscribe((saleData: any) => {
+      const salePayload = {
+        productId: product.id,
+        quantitySold: saleData.quantitySold
+      };
 
-    this.saleService.createSale(salePayload).subscribe({
-      next: () => {
-        this.loadProducts(); // Refresh product quantities
-        modalRef.close();
-        alert('Product sold successfully!');
+      this.saleService.createSale(salePayload).subscribe({
+        next: () => {
+          this.loadProducts();
+          modalRef.close();
+          this.alertService.successSwal('Product sold');
+        },
+        error: (err) => {
+          this.alertService.errorSwal('Sale recording');
+        }
+      });
+    });
+
+    modalRef.componentInstance.modalClose.subscribe(() => {
+      modalRef.close();
+    });
+  }
+
+  exportProducts(): void {
+    this.excelService.exportProducts().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Products.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
       },
       error: (err) => {
-        console.error('Sale failed:', err);
-        alert('Sale recording failed');
+        console.error('Export failed:', err);
       }
     });
-  });
+  }
 
-  modalRef.componentInstance.modalClose.subscribe(() => {
-    modalRef.close();
-  });
-}
 }

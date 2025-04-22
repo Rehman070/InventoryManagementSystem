@@ -15,15 +15,23 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let sale of sales">
-          <td>{{ sale.id }}</td>
-          <td>{{ sale.product?.name }}</td>
-          <td>{{ sale.quantitySold }}</td>
-          <td>{{ sale.totalPrice | currency }}</td>
-          <td>{{ sale.saleDate | date }}</td>
-        </tr>
+        <ng-container *ngIf="sales && sales.length > 0; else noData">
+          <tr *ngFor="let sale of sales">
+            <td>{{ sale.id }}</td>
+            <td>{{ sale.product?.name }}</td>
+            <td>{{ sale.quantitySold }}</td>
+            <td>{{ sale.totalPrice | currency }}</td>
+            <td>{{ sale.saleDate | date }}</td>
+          </tr>
+        </ng-container>
+
+        <!-- Show message inside the table when no sales exist -->
+        <ng-template #noData>
+          <tr>
+            <td colspan="5" class="text-center text-muted">No sales found. Please record new sales.</td>
+          </tr>
+        </ng-template>
       </tbody>
     </table>
   </div>
 </div>
-

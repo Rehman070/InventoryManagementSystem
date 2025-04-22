@@ -9,30 +9,21 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-sales-list',
-  imports: [ ReactiveFormsModule,CommonModule],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './sales-list.component.html',
   styleUrl: './sales-list.component.scss'
 })
 export class SalesListComponent implements OnInit {
   sales: Sale[] = [];
   products: Product[] = [];
-  saleForm: FormGroup;
 
   constructor(
     private saleService: SaleService,
-    private productService: ProductService,
-    private fb: FormBuilder,
-    private modalService: NgbModal
   ) {
-    this.saleForm = this.fb.group({
-      productId: [null, Validators.required],
-      quantitySold: [1, [Validators.required, Validators.min(1)]]
-    });
   }
 
   ngOnInit(): void {
     this.loadSales();
-    this.loadProducts();
   }
 
   loadSales(): void {
@@ -40,26 +31,4 @@ export class SalesListComponent implements OnInit {
       this.sales = sales;
     });
   }
-
-  loadProducts(): void {
-    this.productService.getProducts().subscribe(products => {
-      this.products = products;
-    });
-  }
-
-  openSaleModal(): void {
-    this.saleForm.reset();
-    this.modalService.open(document.getElementById('saleModal'));
-  }
-
-  onSubmit(): void {
-    if (this.saleForm.valid) {
-      this.saleService.createSale(this.saleForm.value).subscribe(() => {
-        this.loadSales();
-        this.loadProducts(); // Refresh product quantities
-        this.modalService.dismissAll();
-      });
-    }
-  }
-
 }

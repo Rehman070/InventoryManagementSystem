@@ -1,6 +1,8 @@
-﻿using InventoryManagementSystem.DataContext;
+﻿using DocumentFormat.OpenXml.InkML;
+using InventoryManagementSystem.DataContext;
 using InventoryManagementSystem.DTOs;
 using InventoryManagementSystem.Entities;
+using InventoryManagementSystem.Services.ProductService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,104 +13,86 @@ namespace InventoryManagementSystem.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IProductService _productService;
 
-        public ProductsController(ApplicationDbContext context)
+        public ProductsController(IProductService productService)
         {
-            _context = context;
+            _productService = productService;
         }
 
-        // GET: api/Products
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        #region Product Apis
+        [HttpGet("GetProducts")]
+        public async Task<IActionResult> GetProducts([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            return await _context.Products.ToListAsync();
+            var result = await _productService.GetProducts(pageNumber, pageSize);
+
+            if (result.Data == null || !result.Data.Any())
+            {
+                return NotFound("No products found.");
+            }
+
+            return Ok(result);
         }
 
-        // GET: api/Products/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        [HttpGet("GetProduct")]
+        public async Task<IActionResult> GetProduct(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _productService.GetProduct(id);
 
             if (product == null)
             {
-                return NotFound();
+                return NotFound($"Product with ID {id} not found.");
             }
 
-            return product;
+            return Ok(product);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(int id, [FromBody] ProductUpdateDto productDto)
+        [HttpPut("UpdateProduct")]
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductUpdateDto productDto)
         {
             if (id != productDto.Id)
             {
                 return BadRequest("ID mismatch");
             }
 
-            var existingProduct = await _context.Products.FindAsync(id);
-            if (existingProduct == null)
-            {
-                return NotFound();
-            }
-
-            // Update only the allowed fields
-            existingProduct.Name = productDto.Name;
-            existingProduct.Description = productDto.Description;
-            existingProduct.Price = productDto.Price;
-            existingProduct.Quantity = productDto.Quantity;
-            existingProduct.UpdatedAt = DateTime.UtcNow;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                return NoContent();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProductExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
-
-        // POST: api/Products
-        [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
-        {
-            product.CreatedAt = DateTime.UtcNow;
-            product.UpdatedAt = DateTime.UtcNow;
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetProduct", new { id = product.Id }, product);
-        }
-
-        // DELETE: api/Products/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProduct(int id)
-        {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _productService.UpdateProduct(id, productDto);
             if (product == null)
             {
-                return NotFound();
+                return NotFound($"Product with ID {id} not found.");
             }
 
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
+            return Ok(product);
+        }
+
+        [HttpPost("AddProduct")]
+        public async Task<IActionResult> AddProduct([FromBody] Product product)
+        {
+            if (product == null)
+            {
+                return BadRequest("Invalid product data.");
+            }
+
+            var newProduct = await _productService.AddProduct(product);
+            if (newProduct == null)
+            {
+                return StatusCode(500, "Failed to add product.");
+            }
+
+            return Ok(newProduct);
+        }
+
+        [HttpDelete("DeleteProduct")]
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            var isDeleted = await _productService.DeleteProduct(id);
+
+            if (!isDeleted)
+            {
+                return NotFound($"Product with ID {id} not found.");
+            }
 
             return NoContent();
         }
-
-        private bool ProductExists(int id)
-        {
-            return _context.Products.Any(e => e.Id == id);
-        }
+        #endregion
     }
 }

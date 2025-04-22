@@ -1,7 +1,12 @@
 <div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Product List</h2>
-    <button class="btn btn-primary" (click)="openAddModal()">Add Product</button>
+  <div class="d-flex justify-content-end align-items-center mb-4">
+    <h2 class="me-auto">Product List</h2>
+    <button class="btn btn-primary me-2" (click)="exportProducts()">
+      <i class="bi bi-box-arrow-down"></i> Export
+    </button>
+    <button class="btn btn-success" (click)="openAddModal()">
+      <i class="bi bi-plus-circle"></i> Add Product
+    </button>
   </div>
 
   <div class="table-responsive">
@@ -17,20 +22,54 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let product of products">
-          <td>{{ product.id }}</td>
-          <td>{{ product.name }}</td>
-          <td>{{ product.description }}</td>
-          <td>{{ product.price | currency }}</td>
-          <td>{{ product.quantity }}</td>
-          <td>
-            <button class="btn btn-sm btn-warning me-2" (click)="openEditModal(product)">Edit</button>
-            <button class="btn btn-sm btn-danger me-2" (click)="product.id !== null && deleteProduct(product.id)">Delete</button>
-            <button class="btn btn-sm btn-success me-2" (click)="openPurchaseModal(product)">Purchase</button>
-            <button class="btn btn-sm btn-info" (click)="openSaleModal(product)">Sell</button>
-          </td>
-        </tr>
+        <ng-container *ngIf="products && products.length > 0; else noData">
+          <tr *ngFor="let product of products">
+            <td>{{ product.id }}</td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.description }}</td>
+            <td>{{ product.price | currency }}</td>
+            <td>{{ product.quantity }}</td>
+            <td>
+              <button class="btn btn-sm btn-warning me-2" (click)="openEditModal(product)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-danger me-2" (click)="product.id !== null && deleteProduct(product.id)">
+                <i class="bi bi-trash"></i>
+              </button>
+              <button class="btn btn-sm btn-success me-2" (click)="openPurchaseModal(product)">
+                <i class="bi bi-cart-plus"></i>
+              </button>
+              <button class="btn btn-sm btn-info" (click)="openSaleModal(product)">
+                <i class="bi bi-cash"></i>
+              </button>
+            </td>
+          </tr>
+        </ng-container>
+
+        <ng-template #noData>
+          <tr>
+            <td colspan="6" class="text-center text-muted">No products found. Please add new products.</td>
+          </tr>
+        </ng-template>
       </tbody>
     </table>
   </div>
+
+  <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-end">
+      <li class="page-item" [class.disabled]="pageNumber === 1">
+        <a class="page-link" *ngIf="pageNumber > 1" (click)="changePage(pageNumber - 1)">Previous</a>
+        <span class="page-link" *ngIf="pageNumber === 1">Previous</span>
+      </li>
+
+      <li class="page-item" *ngFor="let page of getTotalPages(); let i = index" [class.active]="pageNumber === i + 1">
+        <a class="page-link cursor-pointer" (click)="changePage(i + 1)">{{ i + 1 }}</a>
+      </li>
+
+      <li class="page-item" [class.disabled]="pageNumber >= totalRecords / pageSize">
+        <a class="page-link" *ngIf="pageNumber < totalRecords / pageSize" (click)="changePage(pageNumber + 1)">Next</a>
+        <span class="page-link" *ngIf="pageNumber >= totalRecords / pageSize">Next</span>
+      </li>
+    </ul>
+  </nav>
 </div>

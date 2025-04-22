@@ -16,24 +16,13 @@ import { CommonModule } from '@angular/common';
 export class PurchasesListComponent implements OnInit {
   purchases: Purchase[] = [];
   products: Product[] = [];
-  purchaseForm: FormGroup;
 
   constructor(
     private purchaseService: PurchaseService,
-    private productService: ProductService,
-    private fb: FormBuilder,
-    private modalService: NgbModal
-  ) {
-    this.purchaseForm = this.fb.group({
-      productId: [null, Validators.required],
-      quantityPurchased: [1, [Validators.required, Validators.min(1)]],
-      supplier: ['', Validators.required]
-    });
-  }
+  ) {}
 
   ngOnInit(): void {
     this.loadPurchases();
-    this.loadProducts();
   }
 
   loadPurchases(): void {
@@ -42,24 +31,4 @@ export class PurchasesListComponent implements OnInit {
     });
   }
 
-  loadProducts(): void {
-    this.productService.getProducts().subscribe(products => {
-      this.products = products;
-    });
-  }
-
-  openPurchaseModal(): void {
-    this.purchaseForm.reset();
-    this.modalService.open(document.getElementById('purchaseModal'));
-  }
-
-  onSubmit(): void {
-    if (this.purchaseForm.valid) {
-      this.purchaseService.createPurchase(this.purchaseForm.value).subscribe(() => {
-        this.loadPurchases();
-        this.loadProducts(); // Refresh product quantities
-        this.modalService.dismissAll();
-      });
-    }
-  }
 }
